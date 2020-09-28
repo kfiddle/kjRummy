@@ -1,0 +1,226 @@
+
+rt random
+
+class Card:
+    def __init__(self, ranking, suit):
+        self.ranking = ranking
+        self.suit = suit
+    def __str__(self):
+
+        if (self.ranking == 11 or self.ranking == 12 or self.ranking == 13 or self.ranking == 1):
+            name_dict = {11: 'jack', 12: 'queen', 13: 'king', 1: 'ace'}
+            return (f"{name_dict[self.ranking]} of {self.suit}")
+        return (f"{self.ranking} of {self.suit}")
+
+def card_maker():
+    deck = []
+    for j in range(1,14):
+        deck.append(Card(j, "Clubs"))
+        deck.append(Card(j, "Diamonds"))
+        deck.append(Card(j, "Hearts"))
+        deck.append(Card(j, "Spades"))
+    return (deck)
+
+# this block shuffles and deals cards to players. Also creates *NON DISPLAYABLE* stack and discard piles
+
+deck = card_maker()
+random.shuffle(deck)
+
+player1 = deck[:10]
+player2 = deck[10:20]
+stack = deck[21:51]
+discard =[]
+discard.append(deck[-1])
+
+table_cards = []
+
+
+#these functions display the cards. The first function is ONLY for players' hands, since these are dictionaries
+# the second function prints cards from a list, like the discard.
+# the third function displays the game as it is.
+
+def pcard(cards):
+   for card in cards:
+      print(card)
+
+def display_game():
+    for x in range(len(player)):
+        print(str(x+1) + '  -  ' + str(player[x]))
+    print()
+
+    if discard != []:
+        print("Upcard...       the ", end='')
+        print(discard[-1])
+    print()
+
+    if table_cards != []:
+        print(len(table_cards))
+        print('                                  ******* Melds on the table ****')
+        print()
+        for x in range(len(table_cards)):
+            print (f"                     -{x + 1} ")
+            for card in table_cards[x]:
+                print(card)
+
+    print()
+
+# checkwin will determine whether or not the game is over and someone has won.
+
+def checkwin():
+    if player1 == [] or player2 == []:
+        return ('true')
+
+
+
+# this block checks to see if the cards offered by the player constitute a meld
+
+def book_check(rank):
+
+    for j in range(1, len(rank)):
+        condition = 'true'
+        compare = rank[0]
+        if rank[j] != compare:
+            condition = 'false'
+            break
+
+    return condition
+
+def run_check(rank, suit):
+    condition = 'true'
+    for h in suit:
+        if suit[0] != h:
+            condition = 'false'
+            break
+
+    rank.sort()
+
+    for f in range(0, len(rank) - 1):
+        if rank[f] + 1 != rank[f+1]:
+                condition = 'false'
+                break
+    return(condition)
+
+# this determines, with the above two functions, whether or not something is a meld
+
+def meld_check(cards):
+    rank = []
+    suit = []
+    for card in cards:
+        rank.append(card.ranking)
+        suit.append(card.suit)
+
+    if run_check(rank, suit) == 'false' and book_check(rank) == 'false':
+        return('false')
+    else:
+        return('true')
+
+# the first decision of every turn
+
+def pick_a_card(player, discard, stack):
+    decide= int(input('''what would you like to do? You can...
+                              1- take the upcard
+                              2- draw from the deck'''))
+
+    if decide == 1:
+        player.append(discard.pop(-1))
+
+    elif decide == 2:
+        print()
+        print()
+        print('ok, if you insist.')
+        player.append(stack.pop(0))
+
+#the discard function
+
+def toss_card(player, discard):
+    toss = int(input('which card would you like to toss?'))
+    discard.append(player.pop(toss - 1))
+
+# this function asks which cards player would like to add to a meld already down, checks them, and adds them
+
+
+def add_to_meld():
+    while True:
+        meld_to_confirm = []
+        meldCard = input('which card would you like to add to the table?')
+        if meldCard == 'd':
+            break
+        whichMeld = input('and to which pile would you like to add?')
+        if whichMeld == 'd':
+            break
+        meld_to_confirm.append(table_cards[int(whichMeld) - 1])
+        meld_to_confirm.append(player[int(meldCard) - 1])
+        if meld_check(meld_to_confirm) == 'true':
+            table_cards[whichMeld - 1] = meld_to_confirm
+            print("nicely done. any more to do? If finished, hit 'd' to continue.")
+        else:
+            print("moron. That doesn't work. Try again? If not, hit 'd' to move on.")
+
+
+def plunk_down_meld():
+    cards_to_add = []
+    while True:
+        thisCard = input("a card that you'd like to include in a meld? If finished with this meld, hit 'q' to move on.")
+
+        if thisCard == 'q':
+            if meld_check(cards_to_add) == 'true':
+                table_cards.append(cards_to_add)
+                for card in cards_to_add:
+                    print(card)
+                print('smooooooth')
+            else:
+                print("moron. That's not a meld")
+            break
+
+        else:
+            cards_to_add.append(player[int(thisCard) - 1])
+            for card in cards_to_add:
+                print(card)
+
+def next_decision():
+    if table_cards == []:
+        decide= int(input('''would you like to
+                              1 - lay down a meld?
+                              2 - discard?'''))
+
+    else:
+        decide = int(input('''would you like to...
+                             1 - lay down a meld?
+                             2 - discard?
+                             3 - add to a meld on the table?'''))
+
+    if decide == 1:
+        display_game()
+        plunk_down_meld()
+
+    if decide == 2:
+        return
+
+    if decide == 3:
+        add_to_meld()
+
+
+#this will be the main game loop
+
+player = player1
+
+while True:
+    if player == player1:
+        print('*****   ' + 'player 1 Hand' + '    *****')
+    else:
+        print('*****   ' + 'player 2 Hand' + '    *****')
+    print()
+    display_game()
+    pick_a_card(player, discard, stack)
+    display_game()
+    next_decision()
+    display_game()
+    toss_card(player, discard)
+    if checkwin() == 'true':
+        print('we have a winner and a LOOOOOOSER. game over.')
+        break
+    if player == player1:
+        player = player2
+    else:
+        player = player1
+
